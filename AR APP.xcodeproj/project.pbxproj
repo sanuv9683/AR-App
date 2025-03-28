@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		2C980FD52D96AB410072BBF6 /* ARKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2C980FD42D96AB410072BBF6 /* ARKit.framework */; };
+		2C980FD72D96AB4B0072BBF6 /* SceneKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2C980FD62D96AB4B0072BBF6 /* SceneKit.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		2C980FB52D9690D90072BBF6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +32,8 @@
 		2C980FA42D9690D70072BBF6 /* AR APP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AR APP.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C980FB42D9690D90072BBF6 /* AR APPTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AR APPTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C980FBE2D9690D90072BBF6 /* AR APPUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AR APPUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2C980FD42D96AB410072BBF6 /* ARKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ARKit.framework; path = System/Library/Frameworks/ARKit.framework; sourceTree = SDKROOT; };
+		2C980FD62D96AB4B0072BBF6 /* SceneKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SceneKit.framework; path = System/Library/Frameworks/SceneKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -52,6 +59,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2C980FD72D96AB4B0072BBF6 /* SceneKit.framework in Frameworks */,
+				2C980FD52D96AB410072BBF6 /* ARKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +87,7 @@
 				2C980FA62D9690D70072BBF6 /* AR APP */,
 				2C980FB72D9690D90072BBF6 /* AR APPTests */,
 				2C980FC12D9690D90072BBF6 /* AR APPUITests */,
+				2C980FD32D96AB400072BBF6 /* Frameworks */,
 				2C980FA52D9690D70072BBF6 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +100,15 @@
 				2C980FBE2D9690D90072BBF6 /* AR APPUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		2C980FD32D96AB400072BBF6 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				2C980FD62D96AB4B0072BBF6 /* SceneKit.framework */,
+				2C980FD42D96AB410072BBF6 /* ARKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -396,8 +415,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"AR APP/Preview Content\"";
+				DEVELOPMENT_TEAM = 3ZW6X5YRM3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "AR-APP-Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -426,8 +447,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"AR APP/Preview Content\"";
+				DEVELOPMENT_TEAM = 3ZW6X5YRM3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "AR-APP-Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
