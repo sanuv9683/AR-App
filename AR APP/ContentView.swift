@@ -12,6 +12,7 @@ struct SensorCoverageData: Identifiable, Hashable {
 }
 
 // MARK: - Main SwiftUI View
+
 struct ContentView: View {
     
     // Example coverage table
@@ -31,50 +32,69 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            // 1) AR view in the background
+            // AR view in the background
             ARViewContainer(selectedCoverageData: $selectedCoverage, useFeet: $useFeet)
                 .edgesIgnoringSafeArea(.all)
             
-            // 2) UI overlay
+            // UI overlay
             VStack {
                 Spacer()
                 
-                // Picker to choose coverage from the table
-                Picker("Coverage Options", selection: $selectedCoverage) {
-                    ForEach(coverageOptions) { option in
-                        Text(
-                            String(format: "%.1f ft (W=%.1f, L=%.1f)",
-                                   option.ceilingHeightFeet,
-                                   option.fovWidthFeet,
-                                   option.fovLengthFeet)
-                        )
-                        .tag(option as SensorCoverageData?)
+                // Coverage Picker Card
+                VStack(spacing: 8) {
+                    Text("Select Coverage")
+                        .font(.headline)
+                    
+                    Picker("Coverage Options", selection: $selectedCoverage) {
+                        ForEach(coverageOptions) { option in
+                            Text(
+                                String(format: "%.1f ft (W=%.1f, L=%.1f)",
+                                       option.ceilingHeightFeet,
+                                       option.fovWidthFeet,
+                                       option.fovLengthFeet)
+                            )
+                            .tag(option as SensorCoverageData?)
+                        }
                     }
+                    .pickerStyle(.wheel)
+                    .frame(height: 100)
+                    .clipped()
                 }
-                .pickerStyle(.wheel)
-                .frame(height: 100)
-                .background(Color.white.opacity(0.8))
+                .padding()
+                .background(Color.white.opacity(0.9))
+                .cornerRadius(12)
+                .shadow(radius: 5)
+                .padding(.bottom, 20)
                 
-                // Segmented control to toggle Feet vs. Meters
-                HStack {
-                    Text("Units:")
+                // Units Picker Card
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Units")
+                        .font(.headline)
+                    
                     Picker("Units", selection: $useFeet) {
                         Text("Feet").tag(true)
                         Text("Meters").tag(false)
                     }
                     .pickerStyle(.segmented)
-                    .background(Color.white.opacity(0.8))
+                    .tint(.blue) // iOS 15+ accent color for segmented picker
                 }
+                .padding()
+                .background(Color.white.opacity(0.9))
+                .cornerRadius(10)
+                .shadow(radius: 2)
+                .padding(.horizontal)
+                .padding(.bottom, 40)
             }
         }
         .onAppear {
-            // Set a default coverage option
+            // Set a default coverage option when view appears
             selectedCoverage = coverageOptions.first
         }
     }
 }
 
 // MARK: - ARViewContainer (UIViewRepresentable)
+
 struct ARViewContainer: UIViewRepresentable {
     
     // Bindings from SwiftUI
@@ -90,42 +110,43 @@ struct ARViewContainer: UIViewRepresentable {
     func makeUIView(context: Context) -> ARSCNView {
         let arView = ARSCNView(frame: .zero)
         
-        // Delegate (if we want to respond to ARSCNView events)
+        // Set delegate to coordinator
         arView.delegate = context.coordinator
         
-        // Configure AR session
+        // Configure AR session with horizontal plane detection
         let configuration = ARWorldTrackingConfiguration()
         configuration.planeDetection = [.horizontal]
         
-        // If device supports LiDAR scene reconstruction
+        // If the device supports LiDAR scene reconstruction, enable it
         if ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) {
             configuration.frameSemantics.insert(.sceneDepth)
             configuration.sceneReconstruction = .mesh
         }
         
-        // Run session
+        // Run AR session
         arView.session.run(configuration)
         
-        // Add tap gesture to place the sensor coverage shape
+        // Add tap gesture recognizer to place the sensor
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)))
         arView.addGestureRecognizer(tapGesture)
         
         return arView
     }
     
-    // Update the view if SwiftUI state changes (e.g., user picks a new coverage data)
+    // Update the ARSCNView if SwiftUI state changes
     func updateUIView(_ uiView: ARSCNView, context: Context) {
         context.coordinator.updateCoverageIfNeeded()
     }
 }
 
 // MARK: - Coordinator
+
 extension ARViewContainer {
     class Coordinator: NSObject, ARSCNViewDelegate {
         
         var parent: ARViewContainer
         
-        // Keep references to the AR view and the coverage nodes
+        // Keep references to the AR view and nodes
         weak var sceneView: ARSCNView?
         var sensorAnchorNode: SCNNode?
         var coverageNode: SCNNode?
@@ -134,14 +155,14 @@ extension ARViewContainer {
             self.parent = parent
         }
         
-        // Handle taps in the AR view
+        // Handle tap gestures in the AR view
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
             guard let sceneView = gesture.view as? ARSCNView else { return }
             self.sceneView = sceneView
             
             let location = gesture.location(in: sceneView)
             
-            // Try ARKit's raycast (iOS 13+)
+            // Use ARKit's raycast (iOS 13+) to find a horizontal plane
             if let query = sceneView.raycastQuery(from: location, allowing: .existingPlaneGeometry, alignment: .horizontal) {
                 let results = sceneView.session.raycast(query)
                 if let result = results.first {
@@ -153,7 +174,7 @@ extension ARViewContainer {
                     placeSensor(at: position)
                 }
             } else {
-                // Fallback for older iOS: use hitTest
+                // Fallback for older iOS versions using hitTest
                 let hitResults = sceneView.hitTest(location, types: [.existingPlaneUsingExtent])
                 if let hit = hitResults.first {
                     let position = SCNVector3(
@@ -168,49 +189,52 @@ extension ARViewContainer {
         
         // Place the sensor anchor node at the tapped position
         func placeSensor(at position: SCNVector3) {
-            // Remove any old anchor node
+            // Remove any previous sensor anchor
             sensorAnchorNode?.removeFromParentNode()
             
-            // Create a new anchor node at that position
+            // Create a new anchor node
             let anchorNode = SCNNode()
             anchorNode.position = position
             sceneView?.scene.rootNode.addChildNode(anchorNode)
             sensorAnchorNode = anchorNode
             
-            // Create/update the coverage shape
+            // Create or update the coverage shape
             updateCoverageNode(anchorNode: anchorNode)
         }
         
-        // If coverage data changes, update the shape
+        // Update the coverage shape if the data changes
         func updateCoverageIfNeeded() {
             if let anchorNode = sensorAnchorNode {
                 updateCoverageNode(anchorNode: anchorNode)
             }
         }
         
-        // Rebuild coverage node
+        // Rebuild the coverage node and attach it to the anchor
         func updateCoverageNode(anchorNode: SCNNode) {
-            // Remove old coverage node
             coverageNode?.removeFromParentNode()
             guard let coverageData = parent.selectedCoverageData else { return }
             
-            // Create new coverage node
             let newNode = createCoverageNode(for: coverageData, inFeet: parent.useFeet)
             coverageNode = newNode
             anchorNode.addChildNode(newNode)
             
-            // Shift coverage so the apex is at the anchor (the ceiling)
+            // Adjust position so the apex is at the sensor anchor
             let shiftY = (parent.useFeet
                           ? feetToMeters(coverageData.ceilingHeightFeet)
                           : coverageData.ceilingHeightFeet) / 2.0
             newNode.position = SCNVector3(0, -shiftY, 0)
         }
         
-        // Build the cone geometry for coverage
+        // Build the AR geometry (a cone that looks like a blue laser beam)
         func createCoverageNode(for coverageData: SensorCoverageData, inFeet: Bool) -> SCNNode {
             let coneGeometry = SCNCone(topRadius: 0, bottomRadius: 1, height: 1)
-            coneGeometry.firstMaterial?.diffuse.contents = UIColor.red.withAlphaComponent(0.3)
+            // Set the diffuse color to a bright blue with slight transparency
+            coneGeometry.firstMaterial?.diffuse.contents = UIColor.blue.withAlphaComponent(0.6)
+            // Make both sides visible
             coneGeometry.firstMaterial?.isDoubleSided = true
+            // Add emission to create a laser-like glow effect
+            coneGeometry.firstMaterial?.emission.contents = UIColor.cyan
+            coneGeometry.firstMaterial?.emission.intensity = 1.0
             
             let coneNode = SCNNode(geometry: coneGeometry)
             
@@ -218,13 +242,15 @@ extension ARViewContainer {
             let baseWidth = coverageData.fovWidthFeet
             let baseLength = coverageData.fovLengthFeet
             
-            // Convert to meters if needed
+            // Convert dimensions to meters if needed
             let heightMeters = inFeet ? feetToMeters(height) : height
             let baseWidthMeters = inFeet ? feetToMeters(baseWidth) : baseWidth
             let baseLengthMeters = inFeet ? feetToMeters(baseLength) : baseLength
             
-            // Scale the cone to represent coverage footprint
-            // X scale = half coverage width, Y = sensor height, Z = half coverage length
+            // Scale the cone:
+            // X scale: half the coverage width
+            // Y scale: the ceiling height (vertical beam length)
+            // Z scale: half the coverage length
             coneNode.scale = SCNVector3(
                 baseWidthMeters / 2.0,
                 heightMeters,
@@ -234,10 +260,9 @@ extension ARViewContainer {
             return coneNode
         }
         
-        // Convert feet to meters
+        // Helper: Convert feet to meters
         func feetToMeters(_ feet: Float) -> Float {
             return feet * 0.3048
         }
     }
 }
-
